@@ -37,7 +37,7 @@ public class MyUMLParser {
 		File file = new File(inputfilepath);
 		File[] files = file.listFiles();
 		for(File f: files){
-			if(f.getName().contains(".java")){
+			if(f.getName().contains(".java")) {
 				javaClassName = f.getName().split("\\.");
 				classNames.add(javaClassName[0]);
 				try {

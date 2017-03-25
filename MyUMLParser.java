@@ -90,7 +90,7 @@ public class MyUMLParser {
 
 
 }
-	private static class FieldVisitor extends VoidVisitorAdapter<Void>{
+/*	private static class FieldVisitor extends VoidVisitorAdapter<Void>{
 		@Override
 		public void visit(FieldDeclaration fd, Void arg){
 			String field = null;
@@ -102,6 +102,6 @@ public class MyUMLParser {
 				fieldNames.add(field);
 			}
 		}
-	}
+	} */
 
 }

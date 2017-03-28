@@ -68,7 +68,21 @@ public class MyUMLParser {
 			}
 		}
 	}
-	private static class MethodVisitor extends VoidVisitorAdapter<Void> {  
+	
+	private static class FieldVisitor extends VoidVisitorAdapter<Void>{
+		@Override
+		public void visit(FieldDeclaration fd, Void arg){
+			String field = null;
+			if(fd.getModifiers()==1){
+				field = "+ " + fd.getVariables().get(0) + " : " + fd.getType();
+				fieldNames.add(field);
+			}else if(fd.getModifiers()==2){
+				field = "- " + fd.getVariables().get(0) + " : " + fd.getType();
+				fieldNames.add(field);
+			}
+		}
+	} 
+	/* private static class MethodVisitor extends VoidVisitorAdapter<Void> {  
 		@Override
 		public void visit(MethodDeclaration m, Void arg) {
 			String method = null;
@@ -89,19 +103,6 @@ public class MyUMLParser {
 	}
 
 
-}
-/*	private static class FieldVisitor extends VoidVisitorAdapter<Void>{
-		@Override
-		public void visit(FieldDeclaration fd, Void arg){
-			String field = null;
-			if(fd.getModifiers()==1){
-				field = "+ " + fd.getVariables().get(0) + " : " + fd.getType();
-				fieldNames.add(field);
-			}else if(fd.getModifiers()==2){
-				field = "- " + fd.getVariables().get(0) + " : " + fd.getType();
-				fieldNames.add(field);
-			}
-		}
-	} */
+} */
 
 }

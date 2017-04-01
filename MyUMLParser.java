@@ -64,6 +64,11 @@ public class MyUMLParser {
 		public void visit(ClassOrInterfaceDeclaration c, Void arg){
 			String interfaces = null;
 			String subClass = null;
+			
+			if(c.getExtends()!= null){
+				subClass = javaClassName[0] + " <|-- " + c.getExtends().get(0);
+				subClassNames.add(subClass);
+			}
 			if(c.getImplements()!=null){
 				String s =c.getImplements().toString();
 				StringTokenizer st = new StringTokenizer(s, " [,]");
@@ -72,10 +77,6 @@ public class MyUMLParser {
 					interfaceNames.add(interfaces);
 				}
 			
-			}
-			if(c.getExtends()!= null){
-				subClass = javaClassName[0] + " <|-- " + c.getExtends().get(0);
-				subClassNames.add(subClass);
 			}
 		}
 	}

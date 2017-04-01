@@ -1,2 +1,3 @@
 Extracting methods, parameters and types from the input source code- done
-Working on how to extract interfaces and parent classes and how to arrange them in .txt file
+Working on how to extract interfaces and parent classes- close to done
+Working on writing the output .txt file

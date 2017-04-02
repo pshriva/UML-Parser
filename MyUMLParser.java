@@ -106,13 +106,13 @@ public class MyUMLParser {
 		@Override
 		public void visit(FieldDeclaration fd, Void arg){
 			String field = null;
-			if(fd.getModifiers()==1){
+			/* if(fd.getModifiers()==1){
 				field = "+ " + fd.getVariables().get(0) + " : " + fd.getType();
 				fieldNames.add(field);
 			}else if(fd.getModifiers()==2){
 				field = "- " + fd.getVariables().get(0) + " : " + fd.getType();
 				fieldNames.add(field);
-			}
+			} */
 		}
 	}
 

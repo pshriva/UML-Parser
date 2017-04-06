@@ -18,6 +18,7 @@ public class MyUMLParser {
 	static ArrayList<String> methodNames = new ArrayList<String>();
 	static ArrayList<String> fieldNames = new ArrayList<String>();
 	static ArrayList<String> subClassNames = new ArrayList<String>();
+	static StringBuffer umlFile = new StringBuffer();
 	static CompilationUnit cu;
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
@@ -35,11 +36,13 @@ public class MyUMLParser {
 		for(String s:subClassNames){
 			System.out.println(s);
 		}
+		System.out.println(umlFile);
 	}
 	private static void parseFiles(String inputfilepath2) {
 		// TODO Auto-generated method stub
 		File file = new File(inputfilepath);
 		File[] files = file.listFiles();
+		umlFile.append("@startuml\n");
 		for(File f: files){
 			if(f.getName().contains(".java")){
 				javaClassName = f.getName().split("\\.");
@@ -56,19 +59,40 @@ public class MyUMLParser {
 				new MethodVisitor().visit(cu,null);
 				new InterfaceVisitor().visit(cu,null);
 				new FieldVisitor().visit(cu,null);
+				createFile();
 			}
 		}
+		getConnections();
+		umlFile.toString();
+	}
+	
+	public static void createFile(){
+		umlFile.append("Class " + javaClassName[0] + "{\n");
+		for (String fName : fieldNames){
+			umlFile.append(fName + "\n");
+		}
+		umlFile.append("\n");
+		for (String mname : methodNames){
+			umlFile.append(mname + "\n");
+		}
+		umlFile.append("}\n");
+		methodNames.clear();
+		fieldNames.clear();
+	}
+	public static void getConnections(){
+		for (String iName : interfaceNames){
+			umlFile.append(iName + "\n");
+		}
+		for (String cName : subClassNames){
+			umlFile.append(cName + "\n");
+		}
+		umlFile.append("@enduml");
 	}
 	private static class InterfaceVisitor extends VoidVisitorAdapter<Void>{
 		@Override
 		public void visit(ClassOrInterfaceDeclaration c, Void arg){
 			String interfaces = null;
 			String subClass = null;
-			
-			if(c.getExtends()!= null){
-				subClass = javaClassName[0] + " <|-- " + c.getExtends().get(0);
-				subClassNames.add(subClass);
-			}
 			if(c.getImplements()!=null){
 				String s =c.getImplements().toString();
 				StringTokenizer st = new StringTokenizer(s, " [,]");
@@ -77,6 +101,10 @@ public class MyUMLParser {
 					interfaceNames.add(interfaces);
 				}
 			
+			}
+			if(c.getExtends()!= null){
+				subClass = javaClassName[0] + " <|-- " + c.getExtends().get(0);
+				subClassNames.add(subClass);
 			}
 		}
 	}
@@ -97,7 +125,7 @@ public class MyUMLParser {
 				method = "+ " + m.getName() + "() : " + m.getType();
 				methodNames.add(method);
 			}
-			
+		
 	}
 
 
@@ -106,13 +134,13 @@ public class MyUMLParser {
 		@Override
 		public void visit(FieldDeclaration fd, Void arg){
 			String field = null;
-			/* if(fd.getModifiers()==1){
+			if(fd.getModifiers()==1){
 				field = "+ " + fd.getVariables().get(0) + " : " + fd.getType();
 				fieldNames.add(field);
 			}else if(fd.getModifiers()==2){
 				field = "- " + fd.getVariables().get(0) + " : " + fd.getType();
 				fieldNames.add(field);
-			} */
+			}
 		}
 	}
 

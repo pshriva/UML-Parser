@@ -1,3 +1,4 @@
 Extracting methods, parameters and types from the input source code- done
-Working on how to extract interfaces and parent classes- close to done
-Working on writing the output .txt file
+Working on how to extract interfaces and parent classes- Done
+Working on writing the output .txt file - Close to done
+Working on extracting Association relationships between classes

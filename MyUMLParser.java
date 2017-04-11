@@ -16,11 +16,12 @@ public class MyUMLParser {
 	static String[] javaClassName;
 	static File parseFile;
 	static ArrayList<String> classNames = new ArrayList<String>();
-	static ArrayList<String> interfaceNames = new ArrayList<String>();
+	static ArrayList<String> implementedClasses = new ArrayList<String>();
 	static ArrayList<String> methodNames = new ArrayList<String>();
 	static ArrayList<String> fieldNames = new ArrayList<String>();
 	static ArrayList<String> subClassNames = new ArrayList<String>();
 	static ArrayList<String> associations = new ArrayList<String>();
+	//static ArrayList<String> interfaces = new ArrayList<String>();	
 	static StringBuffer umlFile = new StringBuffer();
 	static CompilationUnit cu;
 	public static void main(String[] args) throws IOException {
@@ -30,16 +31,13 @@ public class MyUMLParser {
 		UMLGenerator umlgenerator = new UMLGenerator();
 		classNames = getJavaClasses(file);
 		parseFiles(file);
-		/*for(String s:interfaceNames){
+		/*for(String s:implementedClasses){
 			System.out.println(s);
-		} */
-		/*for(String s:classTypeObjects){
+		} 
+		for(String s : fieldNames){
 			System.out.println(s);
 		} */
 		
-		for(String s:associations){
-			System.out.println(s);
-		}
 		System.out.println(umlFile);
 		umlgenerator.createClassDiagram(umlFile.toString());
 	}
@@ -59,7 +57,6 @@ public class MyUMLParser {
 	private static void parseFiles(File file) {
 		File[] files = file.listFiles();
 		umlFile.append("@startuml\n");
-		
 		for(File f: files){
 			if(f.getName().contains(".java")){
 				javaClassName = f.getName().split("\\.");
@@ -83,7 +80,12 @@ public class MyUMLParser {
 	}
 	
 	public static void createFile(){
-		umlFile.append("Class " + javaClassName[0] + "{\n");
+		if(cu.getTypes().toString().contains("interface")){
+			umlFile.append("Interface " + javaClassName[0] + "{\n");
+			System.out.println(javaClassName[0] + " is an interface ");
+		}else{
+			umlFile.append("Class " + javaClassName[0] + "{\n");	
+		}
 		for (String fName : fieldNames){
 			umlFile.append(fName + "\n");
 		}
@@ -96,7 +98,7 @@ public class MyUMLParser {
 		fieldNames.clear();
 	}
 	public static void getConnections(){
-		for (String iName : interfaceNames){
+		for (String iName : implementedClasses){
 			umlFile.append(iName + "\n");
 		}
 		for (String cName : subClassNames){
@@ -110,14 +112,21 @@ public class MyUMLParser {
 	private static class InterfaceVisitor extends VoidVisitorAdapter<Void>{
 		@Override
 		public void visit(ClassOrInterfaceDeclaration c, Void arg){
-			String interfaces = null;
+			String interfaceString = null;
 			String subClass = null;
 			if(c.getImplements()!=null){
 				String s =c.getImplements().toString();
 				StringTokenizer st = new StringTokenizer(s, " [,]");
-				while(st.hasMoreTokens()){
+				/*while(st.hasMoreTokens()){
 					interfaces = st.nextToken() + " <|.. " + javaClassName[0];
-					interfaceNames.add(interfaces);
+					implementedClasses.add(interfaces);
+				}*/
+				while(st.hasMoreTokens()){
+					String token = st.nextToken();
+					String interfacetag = token + "<<interface>>";
+					implementedClasses.add(interfacetag);
+					interfaceString = token + " <|.. " + javaClassName[0];
+					implementedClasses.add(interfaceString);
 				}
 			
 			}

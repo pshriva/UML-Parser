@@ -21,6 +21,7 @@ public class MyUMLParser {
 	static ArrayList<String> fieldNames = new ArrayList<String>();
 	static ArrayList<String> subClassNames = new ArrayList<String>();
 	static ArrayList<String> associations = new ArrayList<String>();
+	static ArrayList<String> dependency = new ArrayList<String>();
 	//static ArrayList<String> interfaces = new ArrayList<String>();	
 	static StringBuffer umlFile = new StringBuffer();
 	static CompilationUnit cu;

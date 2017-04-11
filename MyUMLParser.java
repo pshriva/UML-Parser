@@ -25,17 +25,17 @@ public class MyUMLParser {
 	static CompilationUnit cu;
 	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
-		inputfilepath = "F:/user/SJSU/202/PersonalProject/Samples";
+		inputfilepath = "F:/user/SJSU/202/PersonalProject/Samples/testcase2";
 		File file = new File(inputfilepath);
 		UMLGenerator umlgenerator = new UMLGenerator();
 		classNames = getJavaClasses(file);
 		parseFiles(file);
 		/*for(String s:interfaceNames){
 			System.out.println(s);
-		}
-		for(String s:methodNames){
+		} */
+		/*for(String s:classTypeObjects){
 			System.out.println(s);
-		}*/
+		} */
 		
 		for(String s:associations){
 			System.out.println(s);
@@ -116,13 +116,13 @@ public class MyUMLParser {
 				String s =c.getImplements().toString();
 				StringTokenizer st = new StringTokenizer(s, " [,]");
 				while(st.hasMoreTokens()){
-					interfaces = javaClassName[0] + " <|.. " + st.nextToken();
+					interfaces = st.nextToken() + " <|.. " + javaClassName[0];
 					interfaceNames.add(interfaces);
 				}
 			
 			}
 			if(c.getExtends()!= null){
-				subClass = javaClassName[0] + " <|-- " + c.getExtends().get(0);
+				subClass = c.getExtends().get(0) + " <|-- " + javaClassName[0];
 				subClassNames.add(subClass);
 			}
 		}
@@ -198,10 +198,10 @@ public class MyUMLParser {
 					}
 				}
 			}
-			if(fd.getModifiers()==1){
+			if(fd.getModifiers()==1 && classNames.contains(fd.getType().toString()) == false && fd.getType().toString().contains("<") == false){
 				field = "+ " + fd.getVariables().get(0) + " : " + fd.getType();
 				fieldNames.add(field);
-			}else if(fd.getModifiers()==2){
+			}else if(fd.getModifiers()==2 && classNames.contains(fd.getType().toString()) == false && fd.getType().toString().contains("<")==false){
 				field = "- " + fd.getVariables().get(0) + " : " + fd.getType();
 				fieldNames.add(field);
 			}

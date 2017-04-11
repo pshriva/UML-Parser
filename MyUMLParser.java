@@ -157,27 +157,32 @@ public class MyUMLParser {
 			// looks for if a class contains objects of some other class
 			for(String classname : classNames){
 				String associate = null;
-				String associate_reverse = null;
 				String reverse1 = null;
 				String reverse2 = null;
+				String reverse12 = null;
+				String reverse = null;
 				String allocate = null;
 				int flag = 0;
 				arrayTypeObject = "<" + classname + ">";
 				if(fd.getType().toString().equals(classname)){
 					associate = javaClassName[0] + " -- " + classname;
-					associate_reverse = classname + " -- " + javaClassName[0];
+					reverse = classname + " -- " + javaClassName[0];
+					reverse12 = associate;
+					System.out.println("reverse is : " + reverse);
 					flag = 1;
 				}
 				else if(fd.getType().toString().contains(arrayTypeObject)){
 					associate = javaClassName[0] + " -- \"*\" " +classname;
-					associate_reverse = classname + " -- \"*\" " + javaClassName[0];
+					reverse = classname + " -- \"*\" " + javaClassName[0];
+					System.out.println("reverse is : " +reverse);
 					flag = 2;
 				}
-				if(associate != null && associations.contains(associate) == false && associations.contains(associate_reverse) == false){
+				reverse1 = classname + " -- " + javaClassName[0];
+			    reverse2 = classname + " -- \"*\" " + javaClassName[0];
+				if(associate != null && associations.contains(associate) == false && associations.contains(reverse1) == false && associations.contains(reverse2) == false){
+					System.out.println("I am here");
 					associations.add(associate);
-				}else if(associate != null && associations.contains(associate) == false && associations.contains(associate_reverse)){
-					reverse1 = classname + " -- " + javaClassName[0];
-					reverse2 = classname + " -- \"*\" " + javaClassName[0];
+				}else if(associate != null && associations.contains(associate) == false && (associations.contains(reverse1) || associations.contains(reverse2))){
 					if(associations.contains(reverse1) && flag == 2){
 						associations.remove(reverse1);
 						allocate = javaClassName[0] + " \"1\" -- \"*\" " +classname;

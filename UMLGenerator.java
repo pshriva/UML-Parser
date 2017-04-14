@@ -14,7 +14,7 @@ public class UMLGenerator {
 	public void createClassDiagram(String umlFile) throws IOException {
 		// TODO Auto-generated method stub
 		SourceStringReader reader = new SourceStringReader(umlFile);
-		FileOutputStream output = new FileOutputStream(new File("F:/user/SJSU/202/PersonalProject/Samples/testcase3/test.svg"));
+		FileOutputStream output = new FileOutputStream(new File("F:/user/SJSU/202/PersonalProject/Samples/testcase5/test.svg"));
 		 reader.generateImage(output, new FileFormatOption(FileFormat.SVG, false));
 	}
 }

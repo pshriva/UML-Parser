@@ -1,41 +1,300 @@
-import java.util.ArrayList;
-import java.util.List;
-
-import japa.parser.ast.body.ConstructorDeclaration;
+import japa.parser.JavaParser;
+import japa.parser.ast.CompilationUnit;
+import japa.parser.ast.body.ClassOrInterfaceDeclaration;
+import japa.parser.ast.body.FieldDeclaration;
+import japa.parser.ast.body.MethodDeclaration;
+import japa.parser.ast.stmt.BlockStmt;
+import japa.parser.ast.type.ReferenceType;
 import japa.parser.ast.visitor.VoidVisitorAdapter;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.StringTokenizer;
+public class MyUMLParser {
 
-public class ConstructorVisitor extends VoidVisitorAdapter<Void>{
-	static ArrayList<String> constructors = new ArrayList<String>();
+	static String inputfilepath;
+	static String[] javaClassName;
+	static File parseFile;
+	static ArrayList<String> classNames = new ArrayList<String>();
+	static ArrayList<String> implementedClasses = new ArrayList<String>();
+	static ArrayList<String> methodNames = new ArrayList<String>();
+	static ArrayList<String> fieldNames = new ArrayList<String>();
+	static ArrayList<String> subClassNames = new ArrayList<String>();
+	static ArrayList<String> associations = new ArrayList<String>();
+	static ArrayList<String> dependency = new ArrayList<String>();
 	static ArrayList<String> constructorDependency = new ArrayList<String>();
-	@Override
-	public void visit(ConstructorDeclaration n, Void arg) {
+	static ArrayList<String> interfaces = new ArrayList<String>();	
+	static ArrayList<String> constructors = new ArrayList<String>();	
+	static StringBuffer umlFile = new StringBuffer();
+	
+	static CompilationUnit cu;
+	static ConstructorVisitor constructorVisitor = new ConstructorVisitor();
+	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
-		StringBuffer sb = new StringBuffer();
-		String method = null;
-		if(n.getParameters() != null && (n.getModifiers()==1 || n.getModifiers() == 1025)){
-			for(int i =0; i<n.getParameters().size(); i++){
-				sb.append(n.getParameters().get(i).getId() + " : " + n.getParameters().get(i).getType());
-				if(n.getParameters().size()>1 && i != n.getParameters().size()-1)
-					sb.append(" ");
+		inputfilepath = "F:/user/SJSU/202/PersonalProject/Samples/testcase5";
+		File file = new File(inputfilepath);
+		UMLGenerator umlgenerator = new UMLGenerator();
+		classNames = getJavaClasses(file);
+		parseFiles(file);
+		/*for(String s:constructors){
+			System.out.println(s);
+		} 
+		System.out.println("))))))))))");*/
+		/*for(String s : constructorDependency){
+			System.out.println(s);
+		}*/
+		//System.out.println(umlFile);
+		umlgenerator.createClassDiagram(umlFile.toString());
+	}
+	private static ArrayList<String> getJavaClasses(File file) {
+		ArrayList<String> classes = new ArrayList<String>();
+		// TODO Auto-generated method stub
+		File[] files = file.listFiles();
+		for(File f: files){
+			if(f.getName().contains(".java")){
+				javaClassName = f.getName().split("\\.");
+				classes.add(javaClassName[0]);
 			}
-			method = "+ " + n.getName() + "(" +sb.toString() + ")";
-		}else if(n.getModifiers()==1 || n.getModifiers() == 1025){
-			method = "+ " + n.getName() + "()";
 		}
-		if(method != null){
-			constructors.add(method);
+		
+		return classes;
+	}
+	private static void parseFiles(File file) {
+		File[] files = file.listFiles();
+		umlFile.append("@startuml\n");
+		for(File f: files){
+			if(f.getName().contains(".java")){
+				javaClassName = f.getName().split("\\.");
+				//classNames.add(javaClassName[0]);
+				try {
+					cu = JavaParser.parse(f);
+					JavaParser.setCacheParser(false);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				new FieldVisitor().visit(cu,null);
+				new MethodVisitor().visit(cu,null);
+				constructorVisitor.setClassNames(classNames);
+				constructorVisitor.setJavaclassName(javaClassName[0]);
+				constructorVisitor.visit(cu,null);
+				constructors = constructorVisitor.getConstructors();
+				constructorDependency = constructorVisitor.getConstructorDependency();
+				new InterfaceVisitor().visit(cu,null);
+				//new BodyDeclarationVisitor().visit(cu,null);
+				createFile();
+			}
 		}
+		getConnections();
 	}
 	
-	public ArrayList<String> getConstructors(){
-		//System.out.println(constructors);
-		return constructors;
+	public static void createFile(){
+		if(cu.getTypes().toString().contains("interface")){
+			umlFile.append("Interface " + javaClassName[0] + "{\n");
+		}else{
+			umlFile.append("Class " + javaClassName[0] + "{\n");	
+		}
+		for (String fName : fieldNames){
+			umlFile.append(fName + "\n");
+		}
+		umlFile.append("\n");
+		for (String fName : constructors){
+			umlFile.append(fName + "\n");
+		}
+		umlFile.append("\n");
+		for (String mname : methodNames){
+			umlFile.append(mname + "\n");
+		}
+		umlFile.append("}\n");
+		methodNames.clear();
+		fieldNames.clear();
+		constructors.clear();
+	}
+	public static void getConnections(){
+		for (String iName : implementedClasses){
+			umlFile.append(iName + "\n");
+		}
+		for (String cName : subClassNames){
+			umlFile.append(cName + "\n");
+		}
+		for (String asName: associations){
+			umlFile.append(asName + "\n");
+		}
+		for (String asName: dependency){
+			String[] ifaces = asName.split(" ");
+			if(interfaces.contains(ifaces[0]) == false && interfaces.contains(ifaces[2])){
+				//if(classNames.contains(ifaces[0]) == false && classNames.contains(ifaces[2]) == false){
+					umlFile.append(asName + "\n");
+				//}
+			}
+		}
+		for (String asName1: constructorDependency){
+			String[] ifaces = asName1.split(" ");
+			if(interfaces.contains(ifaces[0]) == false && interfaces.contains(ifaces[2])){
+				/*if(classNames.contains(ifaces[0]) == false && classNames.contains(ifaces[2]) == false){
+					umlFile.append(asName1 + "\n");
+				}*/
+				umlFile.append(asName1 + "\n");
+			}
+		}
+		/*for (String asName1: constructorDependency){
+			String[] ifaces = asName1.split(" ");
+			if(interfaces.contains(ifaces[0]) == false){
+				umlFile.append(asName1 + "\n");
+			}
+		}*/
+		umlFile.append("@enduml");
+	}
+	private static class InterfaceVisitor extends VoidVisitorAdapter<Void>{
+		@Override
+		public void visit(ClassOrInterfaceDeclaration c, Void arg){
+			String interfaceString = null;
+			String subClass = null;
+			if(c.getImplements()!=null){
+				String s =c.getImplements().toString();
+				StringTokenizer st = new StringTokenizer(s, " [,]");
+				while(st.hasMoreTokens()){
+					String token = st.nextToken();
+					String interfacetag = token + "<<interface>>";
+					implementedClasses.add(interfacetag);
+					interfaceString = token + " <|.. " + javaClassName[0];
+					implementedClasses.add(interfaceString);
+					interfaces.add(token);
+				}
+			
+			}
+			if(c.getExtends()!= null){
+				subClass = c.getExtends().get(0) + " <|-- " + javaClassName[0];
+				subClassNames.add(subClass);
+			}
+		}
+	}
+	private static class MethodVisitor extends VoidVisitorAdapter<Void> {  
+		@Override
+		public void visit(MethodDeclaration m, Void arg) {
+			String method = null;
+			StringBuffer sb = new StringBuffer();
+			String dependent = null;
+			// to check if the method is a getter setter type
+			//boolean isGetterSetter = false;
+			String field = null;
+			field = getGetterSetterStatus(m);
+			if(field != null){
+				String[] fieldTokens = field.split(" ");
+				fieldNames.remove(field);
+				fieldNames.add("+ " + fieldTokens[1] + " " + fieldTokens[2] + " " + fieldTokens[3]);
+			}
+			if(m.getParameters()!= null && (m.getModifiers()==1 || m.getModifiers() == 1025 || m.getModifiers() == 9)){
+				for(int i = 0; i<m.getParameters().size();i++){
+					if(classNames.contains(m.getParameters().get(i).getType().toString())){
+						dependent = javaClassName[0] + " ..> " + m.getParameters().get(i).getType().toString();
+						if(dependency.contains(dependent) == false)
+						dependency.add(dependent);
+					}
+					sb.append(m.getParameters().get(i).getId() + " : " + m.getParameters().get(i).getType());
+					if(m.getParameters().size()>1 && i != m.getParameters().size()-1)
+						sb.append(" ");
+				}
+				if(m.getModifiers() == 9){
+					method = "+ " + m.getName() + "(" +sb.toString() + ") : " + m.getType() + "{static}";
+				}else{
+				    method = "+ " + m.getName() + "(" +sb.toString() + ") : " + m.getType();
+				}
+			} else if(m.getModifiers()==1 || m.getModifiers() == 1025){
+				method = "+ " + m.getName() + "() : " + m.getType();
+			} else if(m.getModifiers() == 9){
+				method = "+ " + m.getName() + "(" +sb.toString() + ") : " + m.getType() + "{static}";
+			}
+			if(method != null && field == null){
+				methodNames.add(method);
+			}
+			if(m.getBody() != null){
+				if(m.getBody().getStmts() != null){
+					for(int i = 0; i < m.getBody().getStmts().size(); i++){
+						String statement = m.getBody().getStmts().get(i).toString();
+						if(statement.contains(" = new") || statement.contains(" =new")){
+							String[] reference = statement.split("=");
+							for(String classname : classNames){
+								if(reference[0].toString().contains(classname) && dependency.contains(javaClassName[0] + " ..> " + classname) == false){
+									dependency.add(javaClassName[0] + " ..> " + classname);
+								}
+							}
+						}
+					}
+				}
+			}
 	}
 
-	public ArrayList<String> getDependency() {
-		// TODO Auto-generated method stub
-		return null;
+		private String getGetterSetterStatus(MethodDeclaration m) {
+			// TODO Auto-generated method stub
+			String field = null;
+			for(String fieldname : fieldNames){
+				String[] attribute = fieldname.split(" ");
+				if(m.getName().equalsIgnoreCase("get" + attribute[1]) || m.getName().equalsIgnoreCase("set" + attribute[1])){
+					field = fieldname; 
+				}
+			} 
+			return field;
+			
+		}
+
+
+}
+	private static class FieldVisitor extends VoidVisitorAdapter<Void>{
+		@Override
+		public void visit(FieldDeclaration fd, Void arg){
+			String field = null;
+			String arrayTypeObject = null;
+			// looks for if a class contains objects of some other class
+			for(String classname : classNames){
+				String associate = null;
+				String reverse1 = null;
+				String reverse2 = null;
+				String reverse12 = null;
+				String reverse = null;
+				String allocate = null;
+				int flag = 0;
+				arrayTypeObject = "<" + classname + ">";
+				if(fd.getType().toString().equals(classname)){
+					associate = javaClassName[0] + " -- " + classname;
+					reverse = classname + " -- " + javaClassName[0];
+					reverse12 = associate;
+					flag = 1;
+				}
+				else if(fd.getType().toString().contains(arrayTypeObject)){
+					associate = javaClassName[0] + " -- \"*\" " +classname;
+					reverse = classname + " -- \"*\" " + javaClassName[0];
+					flag = 2;
+				}
+				reverse1 = classname + " -- " + javaClassName[0];
+			    reverse2 = classname + " -- \"*\" " + javaClassName[0];
+				if(associate != null && associations.contains(associate) == false && associations.contains(reverse1) == false && associations.contains(reverse2) == false){
+					associations.add(associate);
+				}else if(associate != null && associations.contains(associate) == false && (associations.contains(reverse1) || associations.contains(reverse2))){
+					if(associations.contains(reverse1) && flag == 2){
+						associations.remove(reverse1);
+						allocate = javaClassName[0] + " \"1\" -- \"*\" " +classname;
+						associations.add(allocate);
+					}else if(associations.contains(reverse2) && flag == 1){
+						associations.remove(reverse2);
+						allocate = javaClassName[0] + " \"*\" -- \"1\" " +classname;
+						associations.add(allocate);
+					}else if(associations.contains(reverse2) && flag == 2){
+						associations.remove(reverse2);
+						allocate = javaClassName[0] + " \"*\" -- \"*\" " +classname;
+						associations.add(allocate);
+					}
+				}
+			}
+			if(fd.getModifiers()==1 && classNames.contains(fd.getType().toString()) == false && fd.getType().toString().contains("<") == false){
+				field = "+ " + fd.getVariables().get(0) + " : " + fd.getType();
+				fieldNames.add(field);
+			}else if(fd.getModifiers()==2 && classNames.contains(fd.getType().toString()) == false && fd.getType().toString().contains("<")==false){
+				field = "- " + fd.getVariables().get(0) + " : " + fd.getType();
+				fieldNames.add(field);
+			}
+		}
 	}
-	
 }

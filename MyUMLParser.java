@@ -19,32 +19,36 @@ public class MyUMLParser {
 	static File parseFile;
 	static ArrayList<String> classNames = new ArrayList<String>();
 	static ArrayList<String> implementedClasses = new ArrayList<String>();
+	static ArrayList<String> totalImplementedClasses = new ArrayList<String>();
 	static ArrayList<String> methodNames = new ArrayList<String>();
 	static ArrayList<String> fieldNames = new ArrayList<String>();
 	static ArrayList<String> subClassNames = new ArrayList<String>();
+	static ArrayList<String> totalSubClassNames = new ArrayList<String>();
 	static ArrayList<String> associations = new ArrayList<String>();
+	static ArrayList<String> totalAssociations = new ArrayList<String>();
 	static ArrayList<String> dependency = new ArrayList<String>();
+	static ArrayList<String> totalDependency = new ArrayList<String>();
 	static ArrayList<String> constructorDependency = new ArrayList<String>();
-	static ArrayList<String> interfaces = new ArrayList<String>();	
+	static ArrayList<String> totalConstructorDependency = new ArrayList<String>();
+	static ArrayList<String> interfaces = new ArrayList<String>();
+	static ArrayList<String> totalInterfaces = new ArrayList<String>();
 	static ArrayList<String> constructors = new ArrayList<String>();	
 	static StringBuffer umlFile = new StringBuffer();
-	
 	static CompilationUnit cu;
-	static ConstructorVisitor constructorVisitor = new ConstructorVisitor();
+	static ConstructorVisitor constructorVisitor;
+	static MethodVisitor methodVisitor;
+	static InterfaceAndClassVisitor interfaceAndClassVisitor;
+	static FieldVisitor fieldVisitor;
 	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
-		inputfilepath = "F:/user/SJSU/202/PersonalProject/Samples/testcase5";
+		inputfilepath = "F:/user/SJSU/202/PersonalProject/Samples/testcase1";
 		File file = new File(inputfilepath);
 		UMLGenerator umlgenerator = new UMLGenerator();
 		classNames = getJavaClasses(file);
 		parseFiles(file);
-		/*for(String s:constructors){
+		for(String s : associations){
 			System.out.println(s);
-		} 
-		System.out.println("))))))))))");*/
-		/*for(String s : constructorDependency){
-			System.out.println(s);
-		}*/
+		}
 		//System.out.println(umlFile);
 		umlgenerator.createClassDiagram(umlFile.toString());
 	}
@@ -75,17 +79,44 @@ public class MyUMLParser {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				new FieldVisitor().visit(cu,null);
-				new MethodVisitor().visit(cu,null);
-				constructorVisitor.setClassNames(classNames);
-				constructorVisitor.setJavaclassName(javaClassName[0]);
+				fieldVisitor = new FieldVisitor(classNames,javaClassName[0]);
+				fieldVisitor.visit(cu, null);
+				fieldNames = fieldVisitor.getFieldNames();
+			    associations = fieldVisitor.getAssociations();
+				methodVisitor = new MethodVisitor(classNames,javaClassName[0],fieldNames);
+				methodVisitor.visit(cu,null);
+				methodNames = methodVisitor.getMethodNames();
+				dependency = methodVisitor.getDependency();
+				constructorVisitor = new ConstructorVisitor(classNames,javaClassName[0]);
 				constructorVisitor.visit(cu,null);
 				constructors = constructorVisitor.getConstructors();
 				constructorDependency = constructorVisitor.getConstructorDependency();
-				new InterfaceVisitor().visit(cu,null);
-				//new BodyDeclarationVisitor().visit(cu,null);
+				for(String s: constructorDependency){
+					if(totalConstructorDependency.contains(s) == false)
+					totalConstructorDependency.add(s);
+				}
+				interfaceAndClassVisitor = new InterfaceAndClassVisitor(javaClassName[0]);
+				interfaceAndClassVisitor.visit(cu, null);
+				interfaces = interfaceAndClassVisitor.getInterfaces();
+				for(String s: interfaces){
+					if(totalInterfaces.contains(s) == false)
+					totalInterfaces.add(s);
+				}
+				subClassNames = interfaceAndClassVisitor.getSubClassNames();
+				for(String s: subClassNames){
+					if(totalSubClassNames.contains(s) == false)
+					totalSubClassNames.add(s);
+				}
+				implementedClasses = interfaceAndClassVisitor.getImplementedClasses();
+				for(String s: implementedClasses){
+					if(totalImplementedClasses.contains(s) == false)
+					totalImplementedClasses.add(s);
+				}
+				//new InterfaceVisitor().visit(cu,null);
+				
 				createFile();
 			}
+			
 		}
 		getConnections();
 	}
@@ -113,41 +144,35 @@ public class MyUMLParser {
 		constructors.clear();
 	}
 	public static void getConnections(){
-		for (String iName : implementedClasses){
+		for (String iName : totalImplementedClasses){
 			umlFile.append(iName + "\n");
 		}
-		for (String cName : subClassNames){
+		for (String cName : totalSubClassNames){
 			umlFile.append(cName + "\n");
 		}
 		for (String asName: associations){
 			umlFile.append(asName + "\n");
 		}
-		for (String asName: dependency){
+		for (String asName: totalDependency){
 			String[] ifaces = asName.split(" ");
-			if(interfaces.contains(ifaces[0]) == false && interfaces.contains(ifaces[2])){
+			if(totalInterfaces.contains(ifaces[0]) == false && totalInterfaces.contains(ifaces[2])){
 				//if(classNames.contains(ifaces[0]) == false && classNames.contains(ifaces[2]) == false){
 					umlFile.append(asName + "\n");
 				//}
 			}
 		}
-		for (String asName1: constructorDependency){
+		for (String asName1: totalConstructorDependency){
 			String[] ifaces = asName1.split(" ");
-			if(interfaces.contains(ifaces[0]) == false && interfaces.contains(ifaces[2])){
-				/*if(classNames.contains(ifaces[0]) == false && classNames.contains(ifaces[2]) == false){
+			if(totalInterfaces.contains(ifaces[0]) == false && totalInterfaces.contains(ifaces[2])){
+				//if(classNames.contains(ifaces[0]) == false && classNames.contains(ifaces[2]) == false){
 					umlFile.append(asName1 + "\n");
-				}*/
-				umlFile.append(asName1 + "\n");
+				//}
 			}
 		}
-		/*for (String asName1: constructorDependency){
-			String[] ifaces = asName1.split(" ");
-			if(interfaces.contains(ifaces[0]) == false){
-				umlFile.append(asName1 + "\n");
-			}
-		}*/
 		umlFile.append("@enduml");
+		//System.out.println(umlFile);
 	}
-	private static class InterfaceVisitor extends VoidVisitorAdapter<Void>{
+	/*private static class InterfaceVisitor extends VoidVisitorAdapter<Void>{
 		@Override
 		public void visit(ClassOrInterfaceDeclaration c, Void arg){
 			String interfaceString = null;
@@ -170,8 +195,8 @@ public class MyUMLParser {
 				subClassNames.add(subClass);
 			}
 		}
-	}
-	private static class MethodVisitor extends VoidVisitorAdapter<Void> {  
+	}*/
+	/*private static class MethodVisitor extends VoidVisitorAdapter<Void> {  
 		@Override
 		public void visit(MethodDeclaration m, Void arg) {
 			String method = null;
@@ -241,10 +266,11 @@ public class MyUMLParser {
 		}
 
 
-}
-	private static class FieldVisitor extends VoidVisitorAdapter<Void>{
+}*/
+	/*private static class FieldVisitor extends VoidVisitorAdapter<Void>{
 		@Override
 		public void visit(FieldDeclaration fd, Void arg){
+			System.out.println("This is class " + javaClassName[0]);
 			String field = null;
 			String arrayTypeObject = null;
 			// looks for if a class contains objects of some other class
@@ -295,6 +321,9 @@ public class MyUMLParser {
 				field = "- " + fd.getVariables().get(0) + " : " + fd.getType();
 				fieldNames.add(field);
 			}
+			for(String s : associations){
+				System.out.println(s);
+			}
 		}
-	}
+	}*/
 }

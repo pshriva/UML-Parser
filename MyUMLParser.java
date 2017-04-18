@@ -41,14 +41,14 @@ public class MyUMLParser {
 	static FieldVisitor fieldVisitor;
 	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
-		inputfilepath = "F:/user/SJSU/202/PersonalProject/Samples/testcase1";
+		inputfilepath = "F:/user/SJSU/202/PersonalProject/Samples/Lab5Part2TestCases";
 		File file = new File(inputfilepath);
 		UMLGenerator umlgenerator = new UMLGenerator();
 		classNames = getJavaClasses(file);
 		parseFiles(file);
-		for(String s : associations){
+		/*for(String s : associations){
 			System.out.println(s);
-		}
+		}*/
 		//System.out.println(umlFile);
 		umlgenerator.createClassDiagram(umlFile.toString());
 	}
@@ -87,6 +87,10 @@ public class MyUMLParser {
 				methodVisitor.visit(cu,null);
 				methodNames = methodVisitor.getMethodNames();
 				dependency = methodVisitor.getDependency();
+				for(String s: dependency){
+					if(totalDependency.contains(s) == false)
+						totalDependency.add(s);
+				}
 				constructorVisitor = new ConstructorVisitor(classNames,javaClassName[0]);
 				constructorVisitor.visit(cu,null);
 				constructors = constructorVisitor.getConstructors();
@@ -267,7 +271,7 @@ public class MyUMLParser {
 
 
 }*/
-	private static class FieldVisitor extends VoidVisitorAdapter<Void>{
+	/*private static class FieldVisitor extends VoidVisitorAdapter<Void>{
 		@Override
 		public void visit(FieldDeclaration fd, Void arg){
 			System.out.println("This is class " + javaClassName[0]);
@@ -325,5 +329,5 @@ public class MyUMLParser {
 				System.out.println(s);
 			}
 		}
-	}
+	}*/
 }

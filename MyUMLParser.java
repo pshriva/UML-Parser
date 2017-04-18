@@ -267,7 +267,7 @@ public class MyUMLParser {
 
 
 }*/
-	/*private static class FieldVisitor extends VoidVisitorAdapter<Void>{
+	private static class FieldVisitor extends VoidVisitorAdapter<Void>{
 		@Override
 		public void visit(FieldDeclaration fd, Void arg){
 			System.out.println("This is class " + javaClassName[0]);
@@ -325,5 +325,5 @@ public class MyUMLParser {
 				System.out.println(s);
 			}
 		}
-	}*/
+	}
 }

@@ -1,0 +1,50 @@
+import japa.parser.ast.body.ClassOrInterfaceDeclaration;
+import japa.parser.ast.visitor.VoidVisitorAdapter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
+
+public class InterfaceAndClassVisitor extends VoidVisitorAdapter<Void>
+{
+  ArrayList<String> subClassNames = new ArrayList<String>();
+  ArrayList<String> implementedClasses = new ArrayList<String>();
+  ArrayList<String> interfaces = new ArrayList<String>();
+  String javaclassName = null;
+  
+  public InterfaceAndClassVisitor(String javaclassName)
+  {
+    this.javaclassName = javaclassName;
+  }
+  
+  public ArrayList<String> getImplementedClasses() { return implementedClasses; }
+  
+  public ArrayList<String> getInterfaces() {
+    return interfaces;
+  }
+  
+  public ArrayList<String> getSubClassNames() { return subClassNames; }
+  
+
+  public void visit(ClassOrInterfaceDeclaration c, Void arg)
+  {
+    String interfaceString = null;
+    String subClass = null;
+    if (c.getImplements() != null) {
+      String s = c.getImplements().toString();
+      StringTokenizer st = new StringTokenizer(s, " [,]");
+      while (st.hasMoreTokens()) {
+        String token = st.nextToken();
+        String interfacetag = token + "<<interface>>";
+        implementedClasses.add(interfacetag);
+        interfaceString = token + " <|.. " + javaclassName;
+        implementedClasses.add(interfaceString);
+        interfaces.add(token);
+      }
+    }
+    
+    if (c.getExtends() != null) {
+      subClass = c.getExtends().get(0) + " <|-- " + javaclassName;
+      subClassNames.add(subClass);
+    }
+  }
+}

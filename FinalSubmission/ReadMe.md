@@ -12,7 +12,10 @@ above step is as per the input type accepted by the plantUml. The generateImage(
 input intermediate code and converts it to the Class Diagram Image.
 4. graphviz-2.38.msi is installed that is used to view the class diagram image generated in the above
 step.
+
+
 Instructions to run the jar on single system:
+
 1. Download the project jar file(UMLParser.jar) from the link provided in the attached file
 (GoogleFolderLinkToZip.pdf)
 2. In the command prompt, change the path to the folder where you have saved the jar file.
